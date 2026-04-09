@@ -1,0 +1,14 @@
+# Use lightweight Nginx
+FROM nginx:alpine
+
+# Remove default Nginx HTML
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy your frontend folder from the project root into Nginx
+COPY frontend /usr/share/nginx/html
+
+# Expose port 80
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
