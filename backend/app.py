@@ -6,8 +6,8 @@ import os
 app = Flask(__name__)
 CORS(app)
 
-# Get frontend path correctly
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# ✅ Correct path handling (FINAL)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
 
 # Home route
@@ -74,12 +74,12 @@ def analyze():
         "suspicious_logs": failed[:10]
     })
 
-# Serve frontend (MAIN FIX)
+# ✅ Serve UI (FINAL FIX)
 @app.route("/ui")
 def serve_ui():
     return send_from_directory(FRONTEND_DIR, "index.html")
 
-# Serve static files (CSS, JS)
+# ✅ Serve static files (CSS, JS)
 @app.route("/static/<path:path>")
 def serve_static(path):
     return send_from_directory(os.path.join(FRONTEND_DIR, "static"), path)
