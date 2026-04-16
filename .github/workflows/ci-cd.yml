@@ -6,14 +6,14 @@ on:
       - main
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Force Node.js 24 for deprecated actions
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repo
+      # 1️⃣ Checkout the repo
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -21,30 +21,39 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # 3️⃣ Docker login (using secrets)
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+      # 3️⃣ Optional: Docker login (needed if pushing images to Docker Hub)
+      # - name: Log in to Docker Hub
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
 
       # 4️⃣ Build backend Docker image
       - name: Build backend Docker image
-        run: docker build -f ./docker/Dockerfile-backend -t rithikka135/security-log-analyzer-backend .
+        run: docker build -f ./docker/Dockerfile-backend -t security-log-analyzer-backend .
 
       # 5️⃣ Build frontend Docker image
       - name: Build frontend Docker image
-        run: docker build -f ./docker/Dockerfile-frontend -t rithikka135/security-log-analyzer-frontend .
+        run: docker build -f ./docker/Dockerfile-frontend -t security-log-analyzer-frontend .
 
-      # 6️⃣ Push images to Docker Hub
-      - name: Push backend image
-        run: docker push rithikka135/security-log-analyzer-backend
+      # 6️⃣ List Docker images (debugging)
+      - name: List Docker images
+        run: docker images
 
-      - name: Push frontend image
-        run: docker push rithikka135/security-log-analyzer-frontend
-
-      # 7️⃣ Optional: Deploy locally with Docker Compose
+      # 7️⃣ Stop old containers and redeploy using Docker Compose
       - name: Deploy with Docker Compose
         run: |
           docker compose -f ./docker/docker-compose.yml down
           docker compose -f ./docker/docker-compose.yml up -d --build
+
+      # 8️⃣ Optional: Verify services are running
+      - name: Check running containers
+        run: docker ps
+
+      # 9️⃣ Notify on success or failure (via GitHub Actions status)
+      - name: Workflow complete
+        if: success()
+        run: echo "✅ Deployment successful!"
+      - name: Workflow failed
+        if: failure()
+        run: echo "❌ Deployment failed. Check logs above."

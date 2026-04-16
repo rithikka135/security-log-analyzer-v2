@@ -2,52 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Security Log Analyzer</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
-  </style>
+  <title>Security Log Dashboard</title>
+  <link rel="stylesheet" href="../static/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <h1>Security Logs</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Message</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody id="logTableBody">
-      <!-- Logs will be inserted here -->
-    </tbody>
-  </table>
+  <header>
+    <h1>Security Log Analyzer Dashboard</h1>
+  </header>
 
-  <script>
-    async function fetchLogs() {
-      try {
-        const response = await fetch('http://localhost:5000/logs');
-        const data = await response.json();
-        const tableBody = document.getElementById('logTableBody');
-        tableBody.innerHTML = ''; // clear previous logs
+  <section class="metrics">
+    <div>
+      <h3>Total Logs</h3>
+      <p id="total-logs">0</p>
+    </div>
+    <div>
+      <h3>Suspicious Users</h3>
+      <ul id="suspicious-list"></ul>
+    </div>
+  </section>
 
-        data.logs.forEach(log => {
-          const row = document.createElement('tr');
-          row.innerHTML = `<td>${log[0]}</td><td>${log[1]}</td><td>${log[2]}</td>`;
-          tableBody.appendChild(row);
-        });
-      } catch (err) {
-        console.error('Error fetching logs:', err);
-      }
-    }
+  <section class="logs-section">
+    <h2>All Logs</h2>
+    <input type="text" id="search" placeholder="Search logs..." />
+    <table id="logs-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Message</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
 
-    // Fetch logs on page load
-    fetchLogs();
+  <section class="chart-section">
+    <h2>Error Logs Over Time</h2>
+    <canvas id="errorChart"></canvas>
+  </section>
 
-    // Optionally, refresh every 5 seconds
-    setInterval(fetchLogs, 5000);
-  </script>
+  <script src="../static/js/script.js"></script>
 </body>
 </html>
