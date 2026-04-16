@@ -1,53 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Security Log Analyzer</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    table { border-collapse: collapse; width: 100%; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f2f2f2; }
+    body { font-family: Arial; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px;}
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f2f2f2; }
+    .failed { color: red; font-weight: bold; }
+    .success { color: green; }
   </style>
 </head>
 <body>
-  <h1>Security Logs</h1>
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Message</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody id="logTableBody">
-      <!-- Logs will be inserted here -->
-    </tbody>
-  </table>
 
-  <script>
-    async function fetchLogs() {
-      try {
-        const response = await fetch('http://localhost:5000/logs');
-        const data = await response.json();
-        const tableBody = document.getElementById('logTableBody');
-        tableBody.innerHTML = ''; // clear previous logs
+<h1>🔐 Security Log Analyzer</h1>
 
-        data.logs.forEach(log => {
-          const row = document.createElement('tr');
-          row.innerHTML = `<td>${log[0]}</td><td>${log[1]}</td><td>${log[2]}</td>`;
-          tableBody.appendChild(row);
-        });
-      } catch (err) {
-        console.error('Error fetching logs:', err);
-      }
-    }
+<h2>Add Log</h2>
+<input id="username" placeholder="Username"><br><br>
+<input id="ip" placeholder="IP Address"><br><br>
+<select id="status">
+  <option value="success">Success</option>
+  <option value="failed">Failed</option>
+</select><br><br>
+<button onclick="addLog()">Add Log</button>
 
-    // Fetch logs on page load
-    fetchLogs();
+<h2>Logs</h2>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Username</th>
+      <th>IP</th>
+      <th>Status</th>
+      <th>Message</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody id="logTable"></tbody>
+</table>
 
-    // Optionally, refresh every 5 seconds
-    setInterval(fetchLogs, 5000);
-  </script>
+<h2>Analysis</h2>
+<button onclick="analyze()">Analyze Logs</button>
+<pre id="analysis"></pre>
+
+<script>
+
+async function addLog() {
+  const data = {
+    username: document.getElementById("username").value,
+    ip: document.getElementById("ip").value,
+    status: document.getElementById("status").value,
+    message: "User login attempt"
+  };
+
+  await fetch('/log', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(data)
+  });
+
+  alert("Log added!");
+  fetchLogs();
+}
+
+async function fetchLogs() {
+  const res = await fetch('/logs');
+  const data = await res.json();
+
+  const table = document.getElementById("logTable");
+  table.innerHTML = "";
+
+  data.logs.forEach(log => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>${log.id}</td>
+      <td>${log.username}</td>
+      <td>${log.ip}</td>
+      <td class="${log.status === 'failed' ? 'failed' : 'success'}">${log.status}</td>
+      <td>${log.message}</td>
+      <td>${log.timestamp}</td>
+    `;
+
+    table.appendChild(row);
+  });
+}
+
+async function analyze() {
+  const res = await fetch('/analyze');
+  const data = await res.json();
+
+  document.getElementById("analysis").innerText =
+    JSON.stringify(data, null, 2);
+}
+
+// Auto load logs
+fetchLogs();
+setInterval(fetchLogs, 5000);
+
+</script>
+
 </body>
 </html>
