@@ -6,6 +6,10 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+# Get frontend path correctly
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FRONTEND_DIR = os.path.join(BASE_DIR, "frontend")
+
 # Home route
 @app.route("/")
 def home():
@@ -36,7 +40,6 @@ def add_log_json():
 def logs():
     logs_list = get_logs()
 
-    # Convert to clean JSON format
     formatted_logs = []
     for log in logs_list:
         formatted_logs.append({
@@ -59,8 +62,7 @@ def analyze():
     success = 0
 
     for log in logs_list:
-        status = log[3].lower()
-        if status == "failed":
+        if log[3].lower() == "failed":
             failed.append(log)
         else:
             success += 1
@@ -72,12 +74,17 @@ def analyze():
         "suspicious_logs": failed[:10]
     })
 
-# Serve frontend
+# Serve frontend (MAIN FIX)
 @app.route("/ui")
 def serve_ui():
-    return send_from_directory(".", "index.html")
+    return send_from_directory(FRONTEND_DIR, "index.html")
 
-# Run app (IMPORTANT for Railway)
+# Serve static files (CSS, JS)
+@app.route("/static/<path:path>")
+def serve_static(path):
+    return send_from_directory(os.path.join(FRONTEND_DIR, "static"), path)
+
+# Run app (Railway compatible)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
